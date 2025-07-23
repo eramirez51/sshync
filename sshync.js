@@ -1,40 +1,42 @@
 #!/usr/bin/env node
 
-(function () {
-  'use strict';
+import fs from 'fs';
+import rsync from 'rsync';
+import path from 'path';
+import chalk from 'chalk';
 
-  var fs = require('fs'),
-      rsync = require('rsync'),
-      path = require('path'),
-      chalk = require('chalk'),
-      args = process.argv.slice(2),
-      edit = false;
+function main() {
+  const args = process.argv.slice(2);
+  let edit = false;
 
-  if (args.length !== 2)
-    return console.log(
-      'sshync <' + chalk.blue('source') + '> ' +
-      '<user@ip[:port]:' + chalk.green('destination') + '>\n' +
-      '\t' + chalk.blue('source') + ':\t\tlocal source file/folder\n' +
-      '\t' + chalk.green('destination') + ':\tremote destination file/folder'
+  if (args.length !== 2) {
+    console.log(
+      `sshync <${chalk.blue('source')}> <user@ip[:port]:${chalk.green('destination')}>\n` +
+      `\t${chalk.blue('source')}:\t\tlocal source file/folder\n` +
+      `\t${chalk.green('destination')}:\tremote destination file/folder`
     );
+    return;
+  }
 
-  var source = path.resolve(args[0]),
-      exclude = path.resolve(source, '.sshyncignore'),
-      cmd = new rsync()
-        .shell('ssh')
-        .flags('avuz')
-        .delete() // This tells rsync to delete extraneous files from the receiving side
-        .source(source)
-        .destination(args[1]),
-      handle;
+  const source = path.resolve(args[0]);
+  const exclude = path.resolve(source, '.sshyncignore');
+  const cmd = new rsync()
+    .shell('ssh')
+    .flags('avuz')
+    .delete() // This tells rsync to delete extraneous files from the receiving side
+    .source(source)
+    .destination(args[1]);
+  let handle;
 
-  if (fs.existsSync(exclude))
-    cmd.set('exclude-from', exclude)
+  if (fs.existsSync(exclude)) {
+    cmd.set('exclude-from', exclude);
+  }
 
   // abort rsync on process exit
   function quit() {
-    if (handle)
+    if (handle) {
       handle.kill();
+    }
     process.exit();
   }
 
@@ -44,45 +46,41 @@
     .on('exit', quit);
 
   function contains(str, substr) {
-    return str.indexOf(substr) !== -1;
+    return str.includes(substr);
   }
 
   function print(line) {
-    console.log(
-      contains(line, 'sent') &&
-      contains(line, 'received') &&
-      contains(line, 'bytes/sec') ?
-        chalk.blue(line) :
-        (edit ? chalk.yellow('✎ ') : chalk.green('✓ ')) + line
-    );
+    const isStats = contains(line, 'sent') && 
+                    contains(line, 'received') && 
+                    contains(line, 'bytes/sec');
+    const prefix = edit ? chalk.yellow('✎ ') : chalk.green('✓ ');
+    
+    console.log(isStats ? chalk.blue(line) : prefix + line);
   }
 
   function sync() {
     handle = cmd.execute(
-      function (error, code, cmd) {
-        return error ? console.log(chalk.red(error)) : 0;
+      (error, code, cmd) => {
+        if (error) {
+          console.log(chalk.red(error));
+        }
+        return 0;
       },
-      function (data) {
-        return data
+      (data) => {
+        data
           .toString()
           .split('\n')
-          .filter(
-            function (line) {
-              return line && contains(line, '/');
-            }
-          )
+          .filter(line => line && contains(line, '/'))
           .forEach(print);
       }
     );
   }
 
   sync();
-  fs.watch(
-    source,
-    { recursive: true },
-    function () {
-      edit = true;
-      sync();
-    }
-  );
-}());
+  fs.watch(source, { recursive: true }, () => {
+    edit = true;
+    sync();
+  });
+}
+
+main();

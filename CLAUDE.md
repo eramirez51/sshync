@@ -11,7 +11,22 @@ sshync is a minimal Node.js command-line tool for real-time file synchronization
 ### Basic Operations
 - `npm install` - Install dependencies (`chalk` and `rsync`)
 - `npm test` - Currently returns error (no tests implemented)
-- `node sshync.js <source> <destination>` - Run the tool directly
+
+### sshync Commands
+- `sshync <source> <destination> [--ignore folders]` - Start syncing immediately
+- `sshync init <source> <destination> [filename] [--ignore folders]` - Save settings to config file
+- `sshync load [filename]` - Load settings from config file and start syncing
+
+### Ignore Folders
+- `--ignore folder1,folder2,folder3` - Comma-separated list of folders to exclude from sync
+- Works with both direct sync and init commands
+- Stored in settings files and applied automatically when loading
+- Combines with existing `.sshyncignore` file support
+
+### Settings Files
+- Default filename: `.sshync.json`
+- Custom filenames allow multiple configurations (e.g., `dev.json`, `prod.json`)
+- Settings files contain source path, destination, ignore folders list, and creation timestamp
 
 ### No Build Process
 This is a single-file Node.js script with no compilation required. No build, lint, or development scripts are configured.

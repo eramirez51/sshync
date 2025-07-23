@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-sshync is a minimal Node.js command-line tool for real-time file synchronization over SSH using rsync and `fs.watch()`. It automatically syncs local files/directories to remote destinations when changes are detected.
+codesync is a minimal Node.js command-line tool for real-time code synchronization over SSH using rsync and `fs.watch()`. It automatically syncs local files/directories to remote destinations when changes are detected.
 
 ## Available Commands
 
@@ -12,23 +12,23 @@ sshync is a minimal Node.js command-line tool for real-time file synchronization
 - `npm install` - Install dependencies (`chalk` and `rsync`)
 - `npm test` - Currently returns error (no tests implemented)
 
-### sshync Commands
-- `sshync <source> <destination> [--ignore folders]` - Start syncing immediately
-- `sshync init <source> <destination> [filename] [--ignore folders]` - Save settings to config file
-- `sshync load [filename]` - Load settings from config file and start syncing
+### codesync Commands
+- `codesync <source> <destination> [--ignore folders]` - Start syncing immediately
+- `codesync init <source> <destination> [filename] [--ignore folders]` - Save settings to config file
+- `codesync load [filename]` - Load settings from config file and start syncing
 
 ### Ignore Folders
 - `--ignore folder1,folder2,folder3` - Comma-separated list of folders to exclude from sync
 - Works with both direct sync and init commands
 - Stored in settings files and applied automatically when loading
-- Combines with existing `.sshyncignore` file support
+- Combines with existing `.codesyncignore` file support
 
 ### Settings Files
-- Default filename: `.sshync.json`
+- Default filename: `.codesync.json`
 - Custom filenames allow multiple configurations (e.g., `dev.json`, `prod.json`)
 - Settings files contain **relative source path**, destination, ignore folders list, and creation timestamp
-- Source paths are stored relative to where `sshync init` was run
-- When loading, paths are resolved relative to current working directory where `sshync load` is executed
+- Source paths are stored relative to where `codesync init` was run
+- When loading, paths are resolved relative to current working directory where `codesync load` is executed
 
 ### No Build Process
 This is a single-file Node.js script with no compilation required. No build, lint, or development scripts are configured.
@@ -36,10 +36,10 @@ This is a single-file Node.js script with no compilation required. No build, lin
 ## Architecture
 
 ### Single File Design
-The entire application is contained in `sshync.js` with these key components:
+The entire application is contained in `codesync.js` with these key components:
 - Command-line argument parsing and validation
 - rsync configuration with flags `avuz --delete`
-- `.sshyncignore` file processing for exclusion patterns
+- `.codesyncignore` file processing for exclusion patterns
 - `fs.watch()` with recursive monitoring
 - Signal handling for graceful shutdown
 - Colored output using chalk
@@ -49,7 +49,7 @@ The entire application is contained in `sshync.js` with these key components:
 - `rsync@^0.6.1` - Node.js rsync wrapper - **Updated to latest version**
 
 ### File Exclusion
-Uses `.sshyncignore` files (similar to `.gitignore`) to exclude files/directories from synchronization. Default exclusions include `node_modules` and `.git`.
+Uses `.codesyncignore` files (similar to `.gitignore`) to exclude files/directories from synchronization. Default exclusions include `node_modules` and `.git`.
 
 ## Development Notes
 

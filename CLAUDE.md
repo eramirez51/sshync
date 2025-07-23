@@ -26,7 +26,9 @@ sshync is a minimal Node.js command-line tool for real-time file synchronization
 ### Settings Files
 - Default filename: `.sshync.json`
 - Custom filenames allow multiple configurations (e.g., `dev.json`, `prod.json`)
-- Settings files contain source path, destination, ignore folders list, and creation timestamp
+- Settings files contain **relative source path**, destination, ignore folders list, and creation timestamp
+- Source paths are stored relative to where `sshync init` was run
+- When loading, paths are resolved relative to current working directory where `sshync load` is executed
 
 ### No Build Process
 This is a single-file Node.js script with no compilation required. No build, lint, or development scripts are configured.

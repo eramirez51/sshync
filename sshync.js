@@ -46,8 +46,10 @@ function showHelp() {
 }
 
 function initSettings(source, destination, filename = SETTINGS_FILE, ignoreFolders = []) {
+  // Store relative path from current working directory
+  const relativePath = path.relative(process.cwd(), path.resolve(source));
   const settings = {
-    source: path.resolve(source),
+    source: relativePath || '.', // Use '.' if source is current directory
     destination: destination,
     ignoreFolders: ignoreFolders,
     created: new Date().toISOString()
@@ -84,13 +86,13 @@ function loadSettings(filename = SETTINGS_FILE) {
     }
 
     console.log(chalk.green(`✓ Loaded settings from ${filename}`));
-    console.log(chalk.blue(`  Source: ${settings.source}`));
+    console.log(chalk.blue(`  Source: ${settings.source} (relative to ${process.cwd()})`));
     console.log(chalk.blue(`  Destination: ${settings.destination}`));
     if (settings.ignoreFolders && settings.ignoreFolders.length > 0) {
       console.log(chalk.blue(`  Ignore folders: ${settings.ignoreFolders.join(', ')}`));
     }
     
-    // Start syncing with loaded settings
+    // Start syncing with loaded settings (source path is stored as relative)
     startSync(settings.source, settings.destination, settings.ignoreFolders || []);
     
   } catch (error) {
@@ -101,7 +103,8 @@ function loadSettings(filename = SETTINGS_FILE) {
 
 function startSync(sourcePath, destinationPath, ignoreFolders = []) {
   let edit = false;
-  const source = path.resolve(sourcePath);
+  // Resolve relative path from current working directory
+  const source = path.resolve(process.cwd(), sourcePath);
   const exclude = path.resolve(source, '.sshyncignore');
   const cmd = new rsync()
     .shell('ssh')

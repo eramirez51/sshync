@@ -84,12 +84,14 @@ Settings are stored as JSON files with the following structure:
 
 ```json
 {
-  "source": "/absolute/path/to/source",
+  "source": "./src",
   "destination": "user@host:/remote/path",
   "ignoreFolders": ["node_modules", "dist", ".git"],
   "created": "2025-07-23T23:29:14.436Z"
 }
 ```
+
+**Important:** Source paths are stored as **relative paths** from where `sshync init` was executed. When you run `sshync load`, the source path is resolved relative to your current working directory.
 
 **Default filename:** `.sshync.json`  
 **Custom filenames:** Any name you specify (e.g., `dev.json`, `staging.json`, `prod.json`)
@@ -103,5 +105,23 @@ sshync supports multiple ways to exclude files and folders:
 3. **Settings file** - Automatically stores and applies ignore list when using `load`
 
 The ignore methods work together - both `.sshyncignore` and command line ignores are applied.
+
+### Portable Configurations
+
+Using relative paths makes your configurations portable and project-friendly:
+
+```bash
+# In your project root
+$ sshync init ./src user@dev:/app dev.json
+$ sshync init ./dist user@prod:/app prod.json
+
+# Later, from the same project root
+$ sshync load dev.json    # Works correctly
+$ sshync load prod.json   # Works correctly
+
+# From a different directory - will look for './src' relative to current location
+$ cd some/other/path
+$ sshync load /path/to/project/dev.json   # Will fail if './src' doesn't exist here
+```
 
 This allows you to maintain multiple sync configurations for different servers or environments with specific exclusion rules for each.

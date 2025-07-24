@@ -4,8 +4,22 @@ import fs from 'fs';
 import rsync from 'rsync';
 import path from 'path';
 import chalk from 'chalk';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const SETTINGS_FILE = '.codesync.json';
+
+function getVersion() {
+  try {
+    const packagePath = path.join(__dirname, 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+    return packageJson.version;
+  } catch (error) {
+    return 'unknown';
+  }
+}
 
 function parseIgnoreFolders(args) {
   const ignoreIndex = args.findIndex(arg => arg === '--ignore');
@@ -29,11 +43,13 @@ function showHelp() {
     `${chalk.yellow('Usage:')}\n` +
     `  codesync <${chalk.blue('source')}> <user@ip[:port]:${chalk.green('destination')}> [--ignore ${chalk.magenta('folders')}]\n` +
     `  codesync init <${chalk.blue('source')}> <user@ip[:port]:${chalk.green('destination')}> [${chalk.cyan('filename')}] [--ignore ${chalk.magenta('folders')}]\n` +
-    `  codesync load [${chalk.cyan('filename')}]\n\n` +
+    `  codesync load [${chalk.cyan('filename')}]\n` +
+    `  codesync --version\n\n` +
     `${chalk.yellow('Commands:')}\n` +
     `  ${chalk.blue('source destination')}         Start syncing immediately\n` +
     `  ${chalk.blue('init source destination')}     Save settings to config file\n` +
-    `  ${chalk.blue('load')}                        Load settings from config file and start syncing\n\n` +
+    `  ${chalk.blue('load')}                        Load settings from config file and start syncing\n` +
+    `  ${chalk.blue('--version, -v')}               Show version number\n\n` +
     `${chalk.yellow('Arguments:')}\n` +
     `  ${chalk.blue('source')}:\t\tlocal source file/folder\n` +
     `  ${chalk.green('destination')}:\tremote destination file/folder\n` +
@@ -41,7 +57,8 @@ function showHelp() {
     `  ${chalk.magenta('folders')}:\t\tcomma-separated list of folders to ignore\n\n` +
     `${chalk.yellow('Examples:')}\n` +
     `  codesync ./src user@server:/app --ignore node_modules,dist,.git\n` +
-    `  codesync init ./src user@server:/app dev.json --ignore node_modules,tmp`
+    `  codesync init ./src user@server:/app dev.json --ignore node_modules,tmp\n` +
+    `  codesync --version`
   );
 }
 
@@ -179,6 +196,13 @@ function startSync(sourcePath, destinationPath, ignoreFolders = []) {
 
 function main() {
   const rawArgs = process.argv.slice(2);
+  
+  // Handle version flag
+  if (rawArgs.includes('--version') || rawArgs.includes('-v')) {
+    console.log(`codesync v${getVersion()}`);
+    return;
+  }
+  
   const { remainingArgs: args, ignoreFolders } = parseIgnoreFolders(rawArgs);
 
   // Handle subcommands

@@ -16,6 +16,7 @@ ssh-copy-id -i ~/.ssh/id_ed25519.pub aimachine@192.168.68.64
 
 ```bash
 # Install from internal Nexus repository (no auth required for pulling)
+# Dependencies are bundled, so this just works
 npm install -g codesync --registry=http://prod.nexus.infra.search-reco.unext-recommender-system.unext.me/repository/npm-internal/
 
 # Start using immediately

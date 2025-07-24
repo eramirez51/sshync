@@ -12,9 +12,10 @@ NEXUS_NPM_REPO=http://prod.nexus.infra.search-reco.unext-recommender-system.unex
 
 .PHONY: build push login install install_latest clean
 
-# Build the npm package
+# Build the npm package with bundled dependencies
 build:
-	@echo "Building codesync v$(CODESYNC_VERSION) package..."
+	@echo "Building codesync v$(CODESYNC_VERSION) package with dependencies..."
+	@npm install  # Ensure dependencies are installed locally
 	npm pack
 
 # Push codesync to Nexus npm repository
@@ -38,6 +39,14 @@ install:
 install_latest:
 	@echo "Installing latest codesync from Nexus repository..."
 	npm install -g codesync --registry=$(NEXUS_NPM_REPO)
+
+# Install with dependencies from public npm (handles missing deps in Nexus)
+install_with_deps:
+	@echo "Installing codesync with dependencies from public npm..."
+	@npm config set registry https://registry.npmjs.org/
+	@npm install -g chalk@^5.4.1 rsync@^0.6.1
+	@npm install -g codesync --registry=$(NEXUS_NPM_REPO)
+	@echo "Installation complete!"
 
 # Clean up generated files
 clean:

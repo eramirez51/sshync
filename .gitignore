@@ -1,3 +1,6 @@
 node_modules
 .sshync.json
+.codesync.json
 prod.json
+*.tgz
+sshync.js

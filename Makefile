@@ -6,15 +6,11 @@ ENV?=dev
 CODESYNC_VERSION=$(shell cat package.json | grep "\"version\": " | cut -d"\"" -f4)
 
 # Nexus repository URLs
-NEXUS_BASE_URL=http://prod.nexus.infra.search-reco.unext-recommender-system.unext.me
-NEXUS_NPM_REPO=$(NEXUS_BASE_URL)/repository/npm-internal/
-NEXUS_BINARIES_REPO=$(NEXUS_BASE_URL)/repository/binaries/
+NEXUS_NPM_REPO=http://prod.nexus.infra.search-reco.unext-recommender-system.unext.me/repository/npm-internal/
 
-# Authentication (adjust as needed)
-NEXUS_USER?=admin
-NEXUS_PASS?=admin123
+# No credentials stored - use 'make login' instead
 
-.PHONY: build push install configure_npm install_from_nexus clean
+.PHONY: build push login install install_latest clean
 
 # Build the npm package
 build:
@@ -26,23 +22,22 @@ push: build
 	@echo "Pushing codesync v$(CODESYNC_VERSION) to Nexus npm repository..."
 	npm publish codesync-$(CODESYNC_VERSION).tgz --registry=$(NEXUS_NPM_REPO)
 
-# Alternative: Upload as binary to Nexus binaries repository  
-push_binary: build
-	@echo "Uploading codesync v$(CODESYNC_VERSION) to Nexus binaries repository..."
-	curl -v --user '$(NEXUS_USER):$(NEXUS_PASS)' \
-		--upload-file codesync-$(CODESYNC_VERSION).tgz \
-		$(NEXUS_BINARIES_REPO)codesync-$(ENV)-$(CODESYNC_VERSION).tgz
 
-# Configure npm to use your Nexus registry
-configure_npm:
-	@echo "Configuring npm to use Nexus repository..."
-	npm config set registry $(NEXUS_NPM_REPO)
-	npm config set _auth $(shell echo -n "$(NEXUS_USER):$(NEXUS_PASS)" | base64)
+# One-time setup: Login to Nexus npm registry
+login:
+	@echo "Logging into Nexus npm registry..."
+	@echo "You'll be prompted for username and password"
+	npm login --registry=$(NEXUS_NPM_REPO)
 
-# Install codesync from Nexus on another machine
+# Install codesync from Nexus (no auth required for pulling)
 install:
 	@echo "Installing codesync from Nexus repository..."
 	npm install -g codesync@$(CODESYNC_VERSION) --registry=$(NEXUS_NPM_REPO)
+
+# Install latest version without specifying version
+install_latest:
+	@echo "Installing latest codesync from Nexus repository..."
+	npm install -g codesync --registry=$(NEXUS_NPM_REPO)
 
 # Clean up generated files
 clean:
@@ -55,16 +50,16 @@ version:
 # Help target
 help:
 	@echo "Available targets:"
+	@echo "  login           - One-time login to Nexus npm registry"
 	@echo "  build           - Create npm package (.tgz file)"
 	@echo "  push            - Build and publish to Nexus npm repository"
-	@echo "  push_binary     - Build and upload as binary to Nexus binaries repository"
-	@echo "  configure_npm   - Configure npm to use Nexus registry"
-	@echo "  install         - Install codesync from Nexus on another machine"
+	@echo "  install         - Install codesync from Nexus (no auth required)"
+	@echo "  install_latest  - Install latest codesync from Nexus (no auth required)"
 	@echo "  clean           - Remove generated package files"
 	@echo "  version         - Show current version"
 	@echo "  help            - Show this help"
 	@echo ""
-	@echo "Environment variables:"
-	@echo "  ENV             - Environment (dev/prod, default: dev)"
-	@echo "  NEXUS_USER      - Nexus username (default: admin)"
-	@echo "  NEXUS_PASS      - Nexus password (default: admin123)"
+	@echo "Usage:"
+	@echo "  1. make login    # One-time setup"
+	@echo "  2. make build"
+	@echo "  3. make push"

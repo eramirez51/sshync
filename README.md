@@ -4,8 +4,18 @@ Auto-sync code files or directories over SSH using [**rsync**](https://github.co
 
 ## TLDR - Quick Install from Nexus
 
+You have to add your ssh `.pub` key copied over to the target remote server
+
+### Example code
+
 ```bash
-# Install from internal Nexus repository
+
+ssh-copy-id -i ~/.ssh/id_ed25519.pub aimachine@192.168.68.64
+
+```
+
+```bash
+# Install from internal Nexus repository (no auth required for pulling)
 npm install -g codesync --registry=http://prod.nexus.infra.search-reco.unext-recommender-system.unext.me/repository/npm-internal/
 
 # Start using immediately
@@ -14,6 +24,36 @@ codesync ./src user@server:/app --ignore node_modules,dist
 # Or save configuration for later
 codesync init ./src user@server:/app dev.json --ignore node_modules,dist
 codesync load dev.json
+```
+
+### For Development (Publishing)
+
+One-time login required for publishing new versions:
+
+```bash
+# One-time setup (login to Nexus)
+make login  # You'll be prompted for username and password
+
+# Then publish normally
+make build
+make push
+
+# Manual approach
+npm login --registry=http://prod.nexus.infra.search-reco.unext-recommender-system.unext.me/repository/npm-internal/
+npm publish --registry=http://prod.nexus.infra.search-reco.unext-recommender-system.unext.me/repository/npm-internal/
+```
+
+### Installing on Multiple Machines
+
+For easy team installation (no auth needed):
+
+```bash
+# One-liner for any machine
+npm install -g codesync --registry=http://prod.nexus.infra.search-reco.unext-recommender-system.unext.me/repository/npm-internal/
+
+# Or set as default registry (optional)
+npm config set registry http://prod.nexus.infra.search-reco.unext-recommender-system.unext.me/repository/npm-internal/
+npm install -g codesync
 ```
 
 ![Animated usage GIF](example.gif)
